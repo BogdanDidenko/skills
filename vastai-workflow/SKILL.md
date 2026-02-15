@@ -1,6 +1,6 @@
 ---
 name: vastai-workflow
-description: Run a generic Vast.ai API lifecycle from offer search to teardown with safety checks and reproducible request steps. Use when users need to list/filter offers, create instances, attach SSH keys, poll readiness, stop/destroy instances, or inspect billing/usage, and when required runtime fields (image, label, instance type, API key source) should be collected in dialog with default suggestions.
+description: Run a generic Vast.ai API lifecycle from offer search to teardown with safety checks and reproducible request steps. Use when users need to list/filter offers, create instances, attach SSH keys, poll readiness, stop/destroy instances, or inspect billing/usage, and when required runtime fields (image, instance type, API key source) should be collected in dialog with default suggestions.
 ---
 
 # Vast.ai Workflow
@@ -27,14 +27,16 @@ Required fields and default suggestions:
   - If missing, suggest loading from a local file path the user confirms (for example `keys/.vast_env`).
 - `instance_type` (offer filter): default `gpu_name="RTX 4090"`.
   - Ask whether to lock by exact GPU, VRAM minimum, region, max price, and reliability.
-- `image`: default `pytorch/pytorch:2.2.2-cuda12.1-cudnn8-runtime`.
-- `label`: default `vast-job-<YYYYMMDD-HHMM>`.
-- `disk_gb`: default `200`.
+- `image`: default `pytorch/pytorch:latest`.
+- `disk_gb`: default `64`.
 - `count`: default `1`.
+- `label`: do not ask by default.
+  - Derive from Vast account identity when possible (nickname or email local-part).
+  - Fallback label: `vast-user`.
 
 Suggested minimal question set:
 1. Which action now (`offers`, `create`, `status`, `ssh`, `destroy`, `billing`)?
-2. Confirm runtime fields (`image`, `label`, `disk_gb`, instance filter).
+2. Confirm runtime fields (`image`, `disk_gb`, instance filter).
 3. Confirm API key source (`VAST_API_KEY` env vs file path).
 
 If the user approves defaults, proceed without extra questions.
@@ -59,9 +61,14 @@ If the user approves defaults, proceed without extra questions.
 ### 3) Create instance
 
 - Create from a single selected offer (`PUT /asks/{id}`).
-- Use confirmed `image`, `label`, `disk_gb`.
+- Use confirmed `image`, resolved `label`, and `disk_gb`.
 - Parse and store the returned instance ID.
 - If create fails (`no_such_ask` or already taken), re-query and retry once with next candidate.
+
+Label resolution order:
+1. Load profile/account endpoint data and use nickname when present.
+2. If nickname missing, use the email local-part when available.
+3. If neither field is available, use `vast-user`.
 
 ### 4) Readiness and access
 
@@ -102,3 +109,4 @@ curl -sS -L -X PUT "https://console.vast.ai/api/v0/asks/$OFFER_ID/?api_key=$VAST
 ## Resources
 
 - `references/api.md`: concise endpoint map and safe calling checklist.
+- Treat `references/api.md` as the working source for endpoint details and refresh it against official docs regularly.

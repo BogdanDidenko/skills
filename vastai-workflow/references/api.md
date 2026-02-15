@@ -3,6 +3,9 @@
 Always validate endpoint details against official docs:
 https://docs.vast.ai/api-reference/introduction
 
+This file is a working snapshot for day-to-day execution.
+Refresh it when endpoint contracts, required params, or response shapes change.
+
 ## Base URL and Auth
 
 - Use `https://console.vast.ai/api/v0/`.
