@@ -82,6 +82,14 @@ Label resolution order:
 - Use destroy promptly when requested to prevent costs.
 - Verify final state and check usage/invoices when needed.
 
+### 6) Runtime preflight (optional, when user plans to run workloads)
+
+- Validate runtime inside the instance instead of trusting image names/tags.
+- Confirm GPU visibility and basic CUDA readiness before starting long jobs.
+- Verify required Python package versions explicitly and report them in logs.
+- If workload depends on optional CUDA extensions (for example `flash_attn` or `xformers`), check availability first and fail fast on mismatch.
+- Prefer explicit environment checks over silent fallbacks to slower backends.
+
 ## Request Templates
 
 Use explicit, reproducible requests and validate JSON before chaining calls.
